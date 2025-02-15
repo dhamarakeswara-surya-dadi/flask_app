@@ -33,4 +33,10 @@ jobs:
     - name: Deploy with Zappa
       run: |
         pip install zappa  # Install Zappa
-        zappa update dev   # Run zappa update command to deploy your app
+        if zappa status dev; then
+          echo "Zappa deployment exists, running update..."
+          zappa update dev  # Update the existing deployment
+        else
+          echo "Zappa deployment does not exist, running deploy..."
+          zappa deploy dev  # Deploy a new app
+        fi
