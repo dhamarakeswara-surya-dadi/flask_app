@@ -9,7 +9,7 @@
             "s3transfer",
             "concurrent"
         ],
-        "profile_name": "default",
+        
         "project_name": "test-python",
         "runtime": "python3.9",
         "s3_bucket": "flask-lambda-test-507"
