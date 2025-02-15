@@ -18,6 +18,10 @@ jobs:
       with:
         python-version: '3.9'  # Set the Python version for your Lambda function
 
+    - name: Set AWS Profile for Zappa
+      run: |
+        echo "AWS_PROFILE=default" >> $GITHUB_ENV  # Optional, only if using a profile
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
