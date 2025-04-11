@@ -3,28 +3,29 @@ name: Zappa Deployment
 on:
   push:
     branches:
-      - main   # Trigger this action on every push to the main branch
+      - main
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest  # You can change this to another OS if needed
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2  # Checkout your repository
+      uses: actions/checkout@v2
 
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.9'  # Set the Python version for your Lambda function
+        python-version: '3.9'
 
     - name: Install dependencies
       run: |
-        python -m venv venv  # Create a virtual environment
+        python -m venv venv
         source venv/bin/activate
         python -m pip install --upgrade pip
         pip install flask
-        pip install -r requirements.txt  # Install project dependencies
+        pip install -r requirements.txt
+        pip install zappa
 
     - name: Set up AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -33,13 +34,25 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
 
+    - name: Conditional Zappa Undeploy
+      run: |
+        source venv/bin/activate
+        echo "Checking config.json for undeploy flag..."
+        DELETE=$(python3 -c "import json; print(json.load(open('config.json'))['delete_deployment'])")
+        echo "Delete setting: $DELETE"
+        if [ "$DELETE" = "True" ] || [ "$DELETE" = "true" ]; then
+          echo "Deleting Zappa deployment..."
+          zappa undeploy dev -y
+        else
+          echo "Skipping undeploy. Config flag is false."
+        fi
+
     - name: Deploy with Zappa
       run: |
         source venv/bin/activate
         if zappa status dev; then
           echo "Zappa deployment exists, running update..."
-          zappa update dev  # Update the existing deployment
+          zappa update dev
         else
           echo "Zappa deployment does not exist, running deploy..."
-          zappa deploy dev  # Deploy a new app
-        fi
+          zappa deploy dev
